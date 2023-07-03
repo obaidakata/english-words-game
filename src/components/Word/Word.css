@@ -1,0 +1,27 @@
+.ib {
+    display: inline-block;
+    border: 1px solid #ccc;
+}
+
+.letter {
+    user-select: none;
+    margin: 2px;
+    border: 3px solid;
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+}
+
+.red
+{
+    border-color:red;
+}
+
+.green
+{
+    border-color:green;
+}
+
+.grey {
+    border-color: grey;
+}
