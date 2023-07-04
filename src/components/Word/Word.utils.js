@@ -14,4 +14,4 @@ export const getNewColors = (wordToPresent, letters) => {
 };
 
 
-// export const areAllGreen = (colors, expectedNumberOfGreen) => (colors.filter(color => color === 'green').length === expectedNumberOfGreen);
+export const areAllGreen = (colors, expectedNumberOfGreen) => (colors.filter(color => color === 'green').length === expectedNumberOfGreen);

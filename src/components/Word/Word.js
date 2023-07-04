@@ -1,5 +1,5 @@
 import { createRef, useEffect, useState } from 'react';
-import { getNewColors, isLetter } from './Word.utils';
+import { areAllGreen, getNewColors, isLetter } from './Word.utils';
 import './Word.css';
 import Button from '@mui/material/Button';
 
@@ -62,7 +62,7 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 	const checkWord = () => {
 		const newColors = getNewColors(wordToPresent, letters);
 		setColors(newColors);
-		if (true) {
+		if (areAllGreen(newColors, wordToPresentLength)) {
 			setShowNextButton(true);
 		}
 	};
@@ -91,6 +91,8 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 					);
 				})}
 			</div>
+
+			{/*TODO: add ability to see the number of sucess, and add threshold for minimum number of success to present*/}
 			{showCheckButton && <Button variant="contained" onClick={checkWord}>Check</Button>}
 			{showNextButton && <Button variant="contained" onClick={onSuccess}>Next</Button>}
 		</>

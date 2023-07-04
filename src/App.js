@@ -1,7 +1,18 @@
 import './App.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { getPageIndex, getWords, wordsActions } from './components/WordGame/WordGame.slice';
-import { exportUserInfo, removeLocalData, saveDataLocally } from './components/WordGame/WordGame.utils';
+import {
+	getCurrentWordIndex,
+	getLevel,
+	getPageIndex,
+	getWords,
+	wordsActions
+} from './components/WordGame/WordGame.slice';
+import {
+	exportUserInfo,
+	filterWordsByLevel,
+	removeLocalData,
+	saveDataLocally
+} from './components/WordGame/WordGame.utils';
 import { Box, Paper } from '@mui/material';
 import WordGame from './components/WordGame/WordGame';
 import UploadFilePage from './components/UpladFilePage/UploadFilePage';
@@ -12,7 +23,8 @@ export const pageSize = 50;
 function App () {
 	const dispatch = useDispatch();
 	const allWords = useSelector(getWords());
-	const pageIndex = useSelector(getPageIndex());
+	const level = useSelector(getLevel());
+	const currentWordIndex = useSelector(getCurrentWordIndex());
 
 	const onExit = () => {
 		removeLocalData();
@@ -20,9 +32,7 @@ function App () {
 	}
 
 	const HeaderInformation = () => ( <>
-		<h5 className="headerText">Learning {pageSize} words</h5>
-		<h5 className="headerText">Page {pageIndex} out
-			of {parseInt(allWords.length / pageSize)}</h5>
+		<h5 className="headerText">Word: {currentWordIndex + 1} of {filterWordsByLevel(allWords, level).length}</h5>
 		<button onClick={() => exportUserInfo(allWords)}>Save Progress</button>
 		<button onClick={onExit}>Exit</button>
 	</> );
@@ -38,7 +48,7 @@ function App () {
 				alignItems="center"
 				minHeight="100vh"
 			>
-				<Paper elevation={3} style={{ 'width': '90%', 'min-height': '80vh' }}>
+				<Paper elevation={3} style={{ 'width': '90%', 'minHeight': '80vh' }}>
 					<Box
 						display="flex"
 						justifyContent="center"

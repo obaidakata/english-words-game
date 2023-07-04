@@ -34,8 +34,10 @@ export const openFile = (file, onDoneProcessing) => {
 	reader.readAsText(file);
 };
 
+export const filterWordsByLevel = (words, level) => words.filter(word => word.level === level)
+
 export const chooseWords = (allWords, pageSize, pageNumber, level) => {
-	return shuffle(allWords.filter(word => word.level === level).slice(( pageNumber - 1 ) * pageSize, pageNumber * pageSize)).sort((a, b) => a.success - b.success);
+	return shuffle(filterWordsByLevel(allWords, level).slice(( pageNumber - 1 ) * pageSize, pageNumber * pageSize)).sort((a, b) => a.success - b.success);
 };
 
 const shuffle = (array) => {

@@ -43,7 +43,6 @@ export const wordsSlice = createSlice({
 		},
 		setLevel(state, action) {
 			const newLevel = action.payload;
-			console.log(newLevel, state.level);
 			if (newLevel !== state.level) {
 				state.level = newLevel;
 				state.showWord = false;
@@ -68,7 +67,6 @@ export const moveToNextPage = (dispatch, getState) => {
 	const state = getState();
 	const pageIndex = getPageIndex()(state);
 	const allWords = getWords()(state);
-	const level = getLevel()(state);
 	debugger;
 	if (pageIndex < ( allWords.length / pageSize )) {
 		dispatch(wordsActions.setPageIndex(pageIndex + 1));
@@ -79,7 +77,7 @@ export const moveToNextPage = (dispatch, getState) => {
 		dispatch(wordsActions.setCurrentWords(chooseWords(allWords, pageSize, 1, )));
 	}
 };
-//
+
 export const restartPage = dispatch => dispatch(wordsActions.setCurrentWordIndex(0));
 
 export default wordsSlice.reducer;
