@@ -1,9 +1,9 @@
-import { createRef, useEffect, useState } from 'react';
+import { createRef, useCallback, useEffect, useState } from 'react';
 import { areAllGreen, getNewColors, isLetter } from './Word.utils';
 import './Word.css';
 import Button from '@mui/material/Button';
 
-const Word = ({ word: wordToPresent, onSuccess }) => {
+const Word = ({ word: wordToPresent, onSuccess, onFailure }) => {
 	const wordToPresentLength = wordToPresent.length;
 	const showCheckButton = useState(true);
 	const [showNextButton, setShowNextButton] = useState(false);
@@ -18,7 +18,7 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 		Array.from({ length: wordToPresentLength }, () => 'grey')
 	);
 
-	const handleKeyPress = e => {
+	const handleKeyPress = useCallback(e => {
 		const currentIndex = Number(e.target.id);
 		const key = e.key;
 		// setShowCheckButton(isAllFull());
@@ -35,7 +35,7 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 		const nextInput = inputRefsArray?.[nextIndex]?.current;
 		nextInput.focus();
 		nextInput.select();
-	};
+	}, [inputRefsArray, wordToPresentLength]);
 
 	useEffect(() => {
 		if (inputRefsArray?.[0]?.current) {
@@ -64,6 +64,8 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 		setColors(newColors);
 		if (areAllGreen(newColors, wordToPresentLength)) {
 			setShowNextButton(true);
+		} else {
+			onFailure();
 		}
 	};
 
@@ -83,6 +85,7 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 							ref={ref}
 							type="text"
 							id={`${index}`}
+							key={`input ${index}`}
 							onChange={(e) => updateLetters(e, index)}
 							onClick={e => e.target.select()}
 							maxLength="1"
@@ -92,7 +95,6 @@ const Word = ({ word: wordToPresent, onSuccess }) => {
 				})}
 			</div>
 
-			{/*TODO: add ability to see the number of sucess, and add threshold for minimum number of success to present*/}
 			{showCheckButton && <Button variant="contained" onClick={checkWord}>Check</Button>}
 			{showNextButton && <Button variant="contained" onClick={onSuccess}>Next</Button>}
 		</>

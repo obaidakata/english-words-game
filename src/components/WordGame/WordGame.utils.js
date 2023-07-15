@@ -20,13 +20,12 @@ export const getLocalData = () => JSON.parse(localStorage.getItem(newWordsKey));
 
 export const speechHandler = (text) => window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 
-
 export const openFile = (file, onDoneProcessing) => {
 	const reader = new FileReader();
 
 	let fileloaded = e => {
-		const fileContents = e.target.result;
-		onDoneProcessing(JSON.parse(fileContents));
+		const fileContents = JSON.parse(e.target.result);
+		onDoneProcessing(fileContents);
 	};
 
 	fileloaded = fileloaded.bind(this);
@@ -34,10 +33,12 @@ export const openFile = (file, onDoneProcessing) => {
 	reader.readAsText(file);
 };
 
-export const filterWordsByLevel = (words, level) => words.filter(word => word.level === level)
+export const filterWordsByLevel = (words, level) => words.filter(word => word.level === level);
 
-export const chooseWords = (allWords, pageSize, pageNumber, level) => {
-	return shuffle(filterWordsByLevel(allWords, level).slice(( pageNumber - 1 ) * pageSize, pageNumber * pageSize)).sort((a, b) => a.success - b.success);
+export const filterBySuccessFailure = (words, success, failure) => words.filter(word => word.success <= success)
+
+export const chooseWords = (allWords, level, success, failure) => {
+	return filterBySuccessFailure(filterWordsByLevel(allWords, level), success, failure).sort((a, b) => a.success - b.success)
 };
 
 const shuffle = (array) => {

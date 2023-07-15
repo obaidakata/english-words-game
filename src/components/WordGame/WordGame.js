@@ -1,41 +1,51 @@
 import Word from '../Word/Word';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { speechHandler } from './WordGame.utils';
 import Button from '@mui/material/Button';
-import { ButtonGroup } from '@mui/material';
+import { Box, ButtonGroup, Grid } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-	getCurrentWordIndex,
-	getCurrentWords,
-	getPageIndex,
-	getShowWord,
-	moveToNextPage,
-	restartPage,
-	wordsActions
-} from './WordGame.slice';
+import { getCurrentWordIndex, getCurrentWords, getMute, getShowWord, startOver, wordsActions } from './WordGame.slice';
 import LevelSelect from '../LevelSelect/LevelSelect';
+import SuccessFailureSelect from '../SuccessFailureSelect/SuccessFailureSelect';
 
 
 const WordGame = () => {
 	const dispatch = useDispatch();
-	const pageIndex = useSelector(getPageIndex());
 	const currentWordIndex = useSelector(getCurrentWordIndex());
 	const showWord = useSelector(getShowWord());
 	const currentWords = useSelector(getCurrentWords());
-
+	const mute = useSelector(getMute());
+	const [attempts, setAttempts] = useState(0);
 
 	const onSuccess = () => {
-		dispatch(wordsActions.addScoreToCurrent(currentWordIndex));
+		if (attempts === 0) {
+			dispatch(wordsActions.incrementSuccess(currentWordIndex));
+		}
 		dispatch(wordsActions.setShowWord(false));
-		dispatch(wordsActions.setCurrentWordIndex(pageIndex < currentWords.length ? currentWordIndex + 1 : 0));
+		dispatch(wordsActions.setCurrentWordIndex(currentWordIndex + 1));
 	};
 
+	useEffect(() => setAttempts(0), [currentWordIndex])
+
+	const onFailure = () => {
+		setAttempts(attempts + 1);
+		dispatch(wordsActions.incrementFailure(currentWordIndex));
+	};
+
+	const getCurrentSuccess = useCallback(() => currentWords[currentWordIndex]?.success, [currentWordIndex, currentWords]);
+	const getCurrentFailure = useCallback(() => currentWords[currentWordIndex]?.failure, [currentWordIndex, currentWords]);
 	const getCurrentWord = useCallback(() => currentWords[currentWordIndex]?.word, [currentWordIndex, currentWords]);
-	const getWordLevel = useCallback(() => currentWords[currentWordIndex]?.level, [currentWordIndex, currentWords]);
 
-	const speakCurrentWord = () => speechHandler(getCurrentWord());
+	const speakCurrentWord = useCallback(() => {
+		dispatch(wordsActions.setMute(false));
+		speechHandler(getCurrentWord());
+	}, [dispatch, getCurrentWord]);
 
-	useEffect(speakCurrentWord, [currentWordIndex, getCurrentWord]);
+	useEffect(() => {
+		if (!mute) {
+			speakCurrentWord();
+		}
+	}, [currentWordIndex, getCurrentWord, mute, speakCurrentWord]);
 
 	useEffect(() => {
 		window.addEventListener('keyup', handleCommandSPress, false);
@@ -47,14 +57,28 @@ const WordGame = () => {
 	return (
 		<>
 			<LevelSelect/>
+			<Box sx={{ width: 500 }}>
+				<SuccessFailureSelect/>
+
+				<Grid container spacing={0}>
+					<Grid item xs={4}>
+						<h5>Success: {getCurrentSuccess()}</h5>
+					</Grid>
+					<Grid item xs={4}>
+						<h5>Failure: {getCurrentFailure()}</h5>
+					</Grid>
+					<Grid item xs={4}>
+						<h5>Attempts: {attempts}</h5>
+					</Grid>
+				</Grid>
+			</Box>
 			<ButtonGroup variant="contained" aria-label="outlined primary button group">
-				<Button onClick={() => dispatch(moveToNextPage)}>Ready to move to next page?</Button>
-				<Button onClick={() => dispatch(restartPage)}>Move to beginning of the page</Button>
+				<Button size="small" onClick={() => dispatch(startOver)}>Start Over</Button>
 			</ButtonGroup>
 
-			<h1>Level {getWordLevel()}</h1>
 			<h1 onClick={speakCurrentWord}>🔊</h1>
-			{getCurrentWord() && <Word key={getCurrentWord()} word={getCurrentWord()} onSuccess={onSuccess}/>}
+			{getCurrentWord() &&
+			<Word key={getCurrentWord()} word={getCurrentWord()} onSuccess={onSuccess} onFailure={onFailure}/>}
 			<Button variant="contained"
 					onClick={() => dispatch(wordsActions.flipShowWord())}>{showWord ? 'Hide' : 'Show'} Word</Button>
 			{showWord && <h3>{getCurrentWord()}</h3>}

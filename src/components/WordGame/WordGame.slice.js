@@ -1,32 +1,37 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { chooseWords } from './WordGame.utils';
-import { pageSize } from '../../App';
 
-const defaultLevel = 'a1'
-// Todo: the page need to be dynamic
-const initialState = { words: null, pageIndex: 1, currentWordIndex: 0, showWord: false, currentWords: [], level: defaultLevel };
+const defaultLevel = 'a1';
+const initialState = {
+	words: null,
+	currentWordIndex: 0,
+	showWord: false,
+	currentWords: [],
+	level: defaultLevel,
+	success: 5,
+	failure: 0,
+	mute: false,
+	showTable: false
+};
 
 export const wordsSlice = createSlice({
 	name: 'wordsSlice',
 	initialState,
 	reducers: {
 		loadWords (state, action) {
-			const newWords = action.payload
+			const newWords = action.payload;
 			state.words = newWords;
 			state.currentWordIndex = 0;
 			state.showWord = false;
-			state.pageIndex = 1
-			state.level = defaultLevel
-			state.currentWords = chooseWords(newWords, pageSize, 1, defaultLevel);
+			state.level = defaultLevel;
+			state.currentWords = chooseWords(newWords, defaultLevel, state.success, state.failure);
 		},
 		resetWords (state) {
 			state.words = null;
 		},
-		setPageIndex (state, action) {
-			state.pageIndex = action.payload;
-		},
 		setCurrentWordIndex (state, action) {
-			state.currentWordIndex = action.payload;
+			const index = action.payload;
+			state.currentWordIndex = ( index >= 0 && index < state.currentWords.length ) ? index : 0;
 		},
 		setShowWord (state, action) {
 			state.showWord = action.payload;
@@ -37,18 +42,56 @@ export const wordsSlice = createSlice({
 		setCurrentWords (state, action) {
 			state.currentWords = action.payload;
 		},
-		addScoreToCurrent(state, action) {
+		incrementSuccess (state, action) {
 			const currentWordIndex = action.payload;
-			state.currentWords[currentWordIndex].success = state.currentWords[currentWordIndex].success + 1
+			const currentWord = state.currentWords[currentWordIndex];
+			const allWords = state.words;
+			currentWord.success = currentWord.success + 1
+			// TODO: increment success only of the user wrote the correct spelling before 3 mistakes.
+			allWords.forEach((item, index) => {
+				if (item.word === currentWord.word) {
+					item.success = item.success + 1;
+				}
+			});
 		},
-		setLevel(state, action) {
+		incrementFailure (state, action) {
+			const currentWordIndex = action.payload;
+			const currentWord = state.currentWords[currentWordIndex];
+			currentWord.failure = currentWord.failure + 1
+			state.words.forEach(item => {
+				if (item.word === currentWord.word) {
+					item.failure = item.failure + 1;
+				}
+			});
+		},
+		setLevel (state, action) {
 			const newLevel = action.payload;
 			if (newLevel !== state.level) {
 				state.level = newLevel;
 				state.showWord = false;
-				state.pageIndex = 1
-				state.currentWords = chooseWords(state.words, pageSize, 1, newLevel);
+				state.currentWordIndex = 0;
+				state.currentWords = chooseWords(state.words, newLevel, state.success, state.failure);
 			}
+		},
+		setSuccess (state, action) {
+			state.success = action.payload;
+			state.showWord = false;
+			state.mute = true;
+			state.currentWords = chooseWords(state.words, state.level, state.success, state.failure);
+			state.currentWordIndex = 0;
+		},
+		setFailure (state, action) {
+			state.failure = action.payload;
+			state.showWord = false;
+			state.mute = true;
+			state.currentWords = chooseWords(state.words, state.level, state.success, state.failure);
+			state.currentWordIndex = 0;
+		},
+		setMute (state, action) {
+			state.mute = action.payload;
+		},
+		setShowTable (state, action) {
+			state.showTable = action.payload;
 		}
 	}
 });
@@ -57,27 +100,15 @@ export const wordsSlice = createSlice({
 export const wordsActions = wordsSlice.actions;
 
 export const getWords = () => state => state.wordsSlice.words;
-export const getPageIndex = () => state => state.wordsSlice.pageIndex;
 export const getCurrentWordIndex = () => state => state.wordsSlice.currentWordIndex;
 export const getShowWord = () => state => state.wordsSlice.showWord;
 export const getCurrentWords = () => state => state.wordsSlice.currentWords;
 export const getLevel = () => state => state.wordsSlice.level;
+export const getSuccess = () => state => state.wordsSlice.success;
+export const getFailure = () => state => state.wordsSlice.failure;
+export const getMute = () => state => state.wordsSlice.mute;
+export const getShowTable = () => state => state.wordsSlice.showTable;
 
-export const moveToNextPage = (dispatch, getState) => {
-	const state = getState();
-	const pageIndex = getPageIndex()(state);
-	const allWords = getWords()(state);
-	debugger;
-	if (pageIndex < ( allWords.length / pageSize )) {
-		dispatch(wordsActions.setPageIndex(pageIndex + 1));
-		dispatch(wordsActions.setCurrentWords(chooseWords(allWords, pageSize, pageIndex + 1)));
-	} else {
-		dispatch(wordsActions.setPageIndex(1));
-		restartPage();
-		dispatch(wordsActions.setCurrentWords(chooseWords(allWords, pageSize, 1, )));
-	}
-};
-
-export const restartPage = dispatch => dispatch(wordsActions.setCurrentWordIndex(0));
+export const startOver = dispatch => dispatch(wordsActions.setCurrentWordIndex(0));
 
 export default wordsSlice.reducer;

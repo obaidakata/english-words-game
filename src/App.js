@@ -1,40 +1,34 @@
 import './App.css';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-	getCurrentWordIndex,
-	getLevel,
-	getPageIndex,
-	getWords,
-	wordsActions
-} from './components/WordGame/WordGame.slice';
-import {
-	exportUserInfo,
-	filterWordsByLevel,
-	removeLocalData,
-	saveDataLocally
-} from './components/WordGame/WordGame.utils';
+import { getCurrentWordIndex, getCurrentWords, getWords, wordsActions } from './components/WordGame/WordGame.slice';
+import { exportUserInfo, removeLocalData } from './components/WordGame/WordGame.utils';
 import { Box, Paper } from '@mui/material';
 import WordGame from './components/WordGame/WordGame';
 import UploadFilePage from './components/UpladFilePage/UploadFilePage';
-
-export const pageSize = 50;
+import WordsTable from './components/WordsTable/WordsTable';
+import Button from '@mui/material/Button';
+import * as React from 'react';
+import PopUpDialog from './components/PopUpDialog/PopUpDialog';
 
 
 function App () {
 	const dispatch = useDispatch();
 	const allWords = useSelector(getWords());
-	const level = useSelector(getLevel());
 	const currentWordIndex = useSelector(getCurrentWordIndex());
+	const currentWords = useSelector(getCurrentWords());
 
 	const onExit = () => {
 		removeLocalData();
 		dispatch(wordsActions.resetWords());
-	}
+	};
 
 	const HeaderInformation = () => ( <>
-		<h5 className="headerText">Word: {currentWordIndex + 1} of {filterWordsByLevel(allWords, level).length}</h5>
-		<button onClick={() => exportUserInfo(allWords)}>Save Progress</button>
-		<button onClick={onExit}>Exit</button>
+		<h5 className="headerText">Word: {currentWordIndex + 1} of {currentWords.length}</h5>
+		<Button color="secondary" size="small" onClick={() => exportUserInfo(allWords)}>Save Progress</Button>
+		<Button color="secondary" size="small" onClick={onExit}>Exit</Button>
+		<Button color="secondary" size="small" onClick={() => dispatch(wordsActions.setShowTable(true))}>
+			Open Words Table
+		</Button>
 	</> );
 
 	return (
@@ -60,6 +54,8 @@ function App () {
 					</Box>
 				</Paper>
 			</Box>
+
+			<PopUpDialog content={<WordsTable/>}/>
 		</>
 	);
 }

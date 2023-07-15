@@ -8,7 +8,7 @@ const LevelSelect = () => {
 	const level = useSelector(getLevel());
 
 	return (
-		<FormControl sx={{ m: 1, minWidth: 80 }}>
+		<FormControl sx={{ m: 2, minWidth: 70 }}>
 			<InputLabel id="demo-simple-select-autowidth-label">Level</InputLabel>
 			<Select
 				labelId="demo-simple-select-autowidth-label"
